@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Platform } from 'react-native';
 import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
+import { colors } from '@/styles/commonStyles';
 
 export default function TabLayout() {
   // Define the tabs configuration
@@ -12,6 +14,24 @@ export default function TabLayout() {
       route: '/(tabs)/(home)/',
       icon: 'house.fill',
       label: 'Home',
+    },
+    {
+      name: 'chat',
+      route: '/(tabs)/chat',
+      icon: 'message.fill',
+      label: 'Chat',
+    },
+    {
+      name: 'notifications',
+      route: '/(tabs)/notifications',
+      icon: 'bell.fill',
+      label: 'Notifications',
+    },
+    {
+      name: 'services',
+      route: '/(tabs)/services',
+      icon: 'doc.text.fill',
+      label: 'Services',
     },
     {
       name: 'profile',
@@ -28,6 +48,18 @@ export default function TabLayout() {
         <NativeTabs.Trigger name="(home)">
           <Icon sf="house.fill" drawable="ic_home" />
           <Label>Home</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="chat">
+          <Icon sf="message.fill" drawable="ic_chat" />
+          <Label>Chat</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="notifications">
+          <Icon sf="bell.fill" drawable="ic_notifications" />
+          <Label>Notifications</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="services">
+          <Icon sf="doc.text.fill" drawable="ic_services" />
+          <Label>Services</Label>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="profile">
           <Icon sf="person.fill" drawable="ic_profile" />
@@ -47,6 +79,9 @@ export default function TabLayout() {
         }}
       >
         <Stack.Screen name="(home)" />
+        <Stack.Screen name="chat" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="services" />
         <Stack.Screen name="profile" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
