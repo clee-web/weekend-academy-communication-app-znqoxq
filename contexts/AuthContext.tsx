@@ -24,6 +24,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateProfile: (userData: Partial<User>) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
+  setupAdmin: () => Promise<{ success: boolean; message: string }>;
 }
 
 interface SignupData {
@@ -115,8 +116,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
+      // Convert username "admin" to email format for Supabase Auth
+      const loginEmail = email === 'admin' ? 'admin@weekendacademy.com' : email;
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: loginEmail,
         password,
       });
 
@@ -172,7 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             phone: userData.phone,
             course: userData.course,
             student_id: `WA${Date.now().toString().slice(-6)}`,
-            role: userData.email === 'admin@weekendacademy.com' ? 'admin' : 'student'
+            role: (userData.email === 'admin@weekendacademy.com' || userData.email === 'admin') ? 'admin' : 'student'
           });
 
         if (profileError) {
@@ -254,6 +258,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setupAdmin = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.functions.invoke('setup-admin', {
+        body: {
+          email: 'admin',
+          password: 'adminiyf',
+          fullName: 'Administrator'
+        }
+      });
+
+      if (error) {
+        console.error('Setup admin error:', error);
+        return { success: false, message: error.message };
+      }
+
+      return { success: true, message: data.message || 'Admin user setup completed' };
+    } catch (error) {
+      console.error('Setup admin error:', error);
+      return { success: false, message: 'An unexpected error occurred' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -263,6 +293,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     updateProfile,
     forgotPassword,
+    setupAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

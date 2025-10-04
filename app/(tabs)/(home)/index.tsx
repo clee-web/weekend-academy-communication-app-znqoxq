@@ -1,18 +1,27 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Stack } from "expo-router";
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Platform, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconSymbol } from "@/components/IconSymbol";
 import { useTheme } from "@react-navigation/native";
 import { colors, textStyles, commonStyles } from "@/styles/commonStyles";
 import { useAuth } from "@/contexts/AuthContext";
+import AdminDashboard from "@/components/AdminDashboard";
 
 export default function HomeScreen() {
   const theme = useTheme();
   const { user } = useAuth();
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
   const quickLinks = [
+    ...(user?.role === 'admin' ? [{
+      title: "Admin Dashboard",
+      description: "Manage announcements & requests",
+      icon: "gear.fill",
+      color: colors.primary,
+      onPress: () => setShowAdminDashboard(true),
+    }] : []),
     {
       title: "Chat with Admin",
       description: "Get help and support",
@@ -83,12 +92,22 @@ export default function HomeScreen() {
   };
 
   const renderHeaderRight = () => (
-    <TouchableOpacity
-      onPress={() => console.log("Notifications pressed")}
-      style={styles.headerButton}
-    >
-      <IconSymbol name="bell.fill" color={colors.text} size={20} />
-    </TouchableOpacity>
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      {user?.role === 'admin' && (
+        <TouchableOpacity
+          onPress={() => setShowAdminDashboard(true)}
+          style={styles.headerButton}
+        >
+          <IconSymbol name="gear.fill" color={colors.primary} size={20} />
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity
+        onPress={() => console.log("Notifications pressed")}
+        style={styles.headerButton}
+      >
+        <IconSymbol name="bell.fill" color={colors.text} size={20} />
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -189,6 +208,15 @@ export default function HomeScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Admin Dashboard Modal */}
+      <Modal
+        visible={showAdminDashboard}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <AdminDashboard onClose={() => setShowAdminDashboard(false)} />
+      </Modal>
     </>
   );
 }

@@ -80,13 +80,21 @@ const styles = {
     marginTop: 20,
     fontStyle: 'italic',
   },
+  setupButton: {
+    ...buttonStyles.secondary,
+    marginTop: 10,
+  },
+  setupButtonText: {
+    ...buttonStyles.secondaryText,
+  },
 };
 
 export default function LoginScreen() {
-  const { login } = useAuth();
+  const { login, setupAdmin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSettingUpAdmin, setIsSettingUpAdmin] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -105,6 +113,41 @@ export default function LoginScreen() {
     } else {
       Alert.alert('Login Failed', result.message);
     }
+  };
+
+  const handleSetupAdmin = async () => {
+    Alert.alert(
+      'Setup Admin User',
+      'This will create an admin user with username "admin" and password "adminiyf". Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Setup',
+          onPress: async () => {
+            setIsSettingUpAdmin(true);
+            const result = await setupAdmin();
+            setIsSettingUpAdmin(false);
+            
+            Alert.alert(
+              result.success ? 'Success' : 'Error',
+              result.message,
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    if (result.success) {
+                      // Pre-fill the login form with admin credentials
+                      setEmail('admin');
+                      setPassword('adminiyf');
+                    }
+                  }
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -150,10 +193,20 @@ export default function LoginScreen() {
               <TouchableOpacity
                 style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
                 onPress={handleLogin}
-                disabled={isLoading}
+                disabled={isLoading || isSettingUpAdmin}
               >
                 <Text style={styles.loginButtonText}>
                   {isLoading ? 'Signing In...' : 'Sign In'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.setupButton, isSettingUpAdmin && { opacity: 0.7 }]}
+                onPress={handleSetupAdmin}
+                disabled={isLoading || isSettingUpAdmin}
+              >
+                <Text style={styles.setupButtonText}>
+                  {isSettingUpAdmin ? 'Setting Up Admin...' : 'Setup Admin User'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -172,7 +225,8 @@ export default function LoginScreen() {
               </Link>
 
               <Text style={styles.adminHint}>
-                Admin login: admin@weekendacademy.com
+                Admin login: username "admin", password "adminiyf"
+                {'\n'}Use "Setup Admin User" button first if admin doesn't exist
               </Text>
             </View>
           </View>

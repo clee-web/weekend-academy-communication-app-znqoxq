@@ -9,6 +9,8 @@ export const colors = {
   secondary: '#e91e63',       // Pink, as an accent color
   accent: '#03a9f4',          // Light Blue, for interactive elements
   card: '#ffffff',            // White, for content containers
+  surface: '#ffffff',         // White surface color
+  border: '#e0e0e0',          // Light border color
   highlight: '#bbdefb',       // Light Blue 100, for subtle emphasis
   error: '#f44336',           // Red for errors
   success: '#4caf50',         // Green for success
@@ -24,6 +26,11 @@ export const buttonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  primaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.card,
+  },
   secondary: {
     backgroundColor: colors.secondary,
     paddingVertical: 12,
@@ -31,6 +38,11 @@ export const buttonStyles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  secondaryText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.card,
   },
   outline: {
     backgroundColor: 'transparent',
@@ -42,12 +54,22 @@ export const buttonStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  outlineText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+  },
   text: {
     backgroundColor: 'transparent',
     paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  textText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });
 
@@ -99,6 +121,24 @@ export const textStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.primary,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+    marginBottom: 4,
   },
 });
 
