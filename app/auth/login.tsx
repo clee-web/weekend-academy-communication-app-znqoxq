@@ -90,7 +90,7 @@ const styles = {
 };
 
 export default function LoginScreen() {
-  const { login, setupAdmin } = useAuth();
+  const { login, setupAdmin, checkAdminStatus } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -125,8 +125,12 @@ export default function LoginScreen() {
           text: 'Setup',
           onPress: async () => {
             setIsSettingUpAdmin(true);
+            console.log('Starting admin setup...');
+            
             const result = await setupAdmin();
             setIsSettingUpAdmin(false);
+            
+            console.log('Admin setup result:', result);
             
             Alert.alert(
               result.success ? 'Success' : 'Error',
@@ -139,6 +143,11 @@ export default function LoginScreen() {
                       // Pre-fill the login form with admin credentials
                       setEmail('admin');
                       setPassword('adminiyf');
+                      Alert.alert(
+                        'Ready to Login',
+                        'Admin credentials have been filled in. You can now tap "Sign In" to login as admin.',
+                        [{ text: 'OK' }]
+                      );
                     }
                   }
                 }
@@ -209,6 +218,33 @@ export default function LoginScreen() {
                   {isSettingUpAdmin ? 'Setting Up Admin...' : 'Setup Admin User'}
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.setupButton, { backgroundColor: colors.warning }]}
+                onPress={() => {
+                  Alert.alert(
+                    'Debug Info',
+                    `Current form values:\nEmail: "${email}"\nPassword: "${password}"\n\nExpected admin values:\nEmail: "admin"\nPassword: "adminiyf"`,
+                    [{ text: 'OK' }]
+                  );
+                }}
+              >
+                <Text style={styles.setupButtonText}>Debug Login Info</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.setupButton, { backgroundColor: colors.accent }]}
+                onPress={async () => {
+                  const result = await checkAdminStatus();
+                  Alert.alert(
+                    'Admin Status',
+                    result.message,
+                    [{ text: 'OK' }]
+                  );
+                }}
+              >
+                <Text style={styles.setupButtonText}>Check Admin Status</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.footer}>
@@ -227,6 +263,11 @@ export default function LoginScreen() {
               <Text style={styles.adminHint}>
                 Admin login: username "admin", password "adminiyf"
                 {'\n'}Use "Setup Admin User" button first if admin doesn't exist
+                {'\n\n'}Troubleshooting:
+                {'\n'}1. Tap "Setup Admin User" first
+                {'\n'}2. Wait for success message
+                {'\n'}3. Use username "admin" (not email)
+                {'\n'}4. Use password "adminiyf"
               </Text>
             </View>
           </View>

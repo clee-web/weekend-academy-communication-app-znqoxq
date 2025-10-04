@@ -25,6 +25,7 @@ interface AuthContextType {
   updateProfile: (userData: Partial<User>) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   setupAdmin: () => Promise<{ success: boolean; message: string }>;
+  checkAdminStatus: () => Promise<{ success: boolean; message: string }>;
 }
 
 interface SignupData {
@@ -119,13 +120,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Convert username "admin" to email format for Supabase Auth
       const loginEmail = email === 'admin' ? 'admin@weekendacademy.com' : email;
       
+      console.log('Attempting login with email:', loginEmail);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password,
       });
 
+      console.log('Login response:', { data: data?.user?.email, error });
+
       if (error) {
         console.error('Login error:', error);
+        
+        // Provide more specific error messages
+        if (error.message.includes('Invalid login credentials')) {
+          if (email === 'admin') {
+            return { 
+              success: false, 
+              message: 'Admin user not found. Please use "Setup Admin User" button first.' 
+            };
+          }
+          return { success: false, message: 'Invalid email or password' };
+        }
+        
         return { success: false, message: error.message };
       }
 
@@ -262,6 +279,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
+      console.log('Invoking setup-admin function...');
+      
       const { data, error } = await supabase.functions.invoke('setup-admin', {
         body: {
           email: 'admin',
@@ -270,17 +289,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
+      console.log('Setup admin response:', { data, error });
+
       if (error) {
         console.error('Setup admin error:', error);
-        return { success: false, message: error.message };
+        // Provide more detailed error information
+        return { 
+          success: false, 
+          message: `Setup failed: ${error.message || 'Unknown error'}\n\nDetails: ${JSON.stringify(error)}` 
+        };
       }
 
-      return { success: true, message: data.message || 'Admin user setup completed' };
+      if (data?.error) {
+        console.error('Setup admin data error:', data.error);
+        return { success: false, message: `Server error: ${data.error}` };
+      }
+
+      return { success: true, message: data?.message || 'Admin user setup completed successfully!' };
     } catch (error) {
       console.error('Setup admin error:', error);
-      return { success: false, message: 'An unexpected error occurred' };
+      return { 
+        success: false, 
+        message: `Unexpected error: ${error.message}\n\nPlease check your internet connection and try again.` 
+      };
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkAdminStatus = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      // Check if admin profile exists
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', 'admin@weekendacademy.com')
+        .eq('role', 'admin');
+
+      const profileCount = profiles?.length || 0;
+
+      // Try to login to check if auth user exists
+      const { data: loginTest, error: loginError } = await supabase.auth.signInWithPassword({
+        email: 'admin@weekendacademy.com',
+        password: 'adminiyf'
+      });
+
+      // Immediately sign out if login was successful
+      if (loginTest?.user) {
+        await supabase.auth.signOut();
+      }
+
+      const authExists = loginTest?.user ? 'Yes' : 'No';
+      const loginErrorMsg = loginError?.message || 'None';
+
+      return {
+        success: true,
+        message: `Admin Status:\n- Admin profiles in DB: ${profileCount}\n- Auth user exists: ${authExists}\n- Login error: ${loginErrorMsg}\n\nProfile Error: ${profileError?.message || 'None'}`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Status check failed: ${error.message}`
+      };
     }
   };
 
@@ -294,6 +364,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
     forgotPassword,
     setupAdmin,
+    checkAdminStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
